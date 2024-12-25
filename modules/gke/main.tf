@@ -1,6 +1,3 @@
-
-
-
 resource "google_compute_subnetwork" "custom" {
   name          = "gke-custom"
   ip_cidr_range = var.secondary_ip_range
@@ -15,8 +12,11 @@ resource "google_compute_subnetwork" "custom" {
     range_name    = "pod-ranges"
     ip_cidr_range = "192.168.64.0/22"
   }
+  
+  # depends_on = [
+  #   var.public_subnets
+  # ]
 }
-
 
 resource "google_container_cluster" "primary" {
   name                     = var.cluster_name
@@ -32,6 +32,16 @@ resource "google_container_cluster" "primary" {
     services_secondary_range_name = google_compute_subnetwork.custom.secondary_ip_range.0.range_name
 
   }
+  node_config {
+    machine_type = var.machine_type
+    disk_size_gb = 100
+    disk_type = var.disk_type
+  }
+  
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+
   enable_multi_networking = true
   datapath_provider       = "ADVANCED_DATAPATH"
   depends_on              = [google_compute_subnetwork.custom]
@@ -58,34 +68,6 @@ resource "google_container_node_pool" "primary_nodes_1" {
     ]
     disk_size_gb = var.disk_size_gb
     disk_type = var.disk_type
-  }
-
-  depends_on = [google_container_cluster.primary]
-}
-
-resource "google_container_node_pool" "primary_nodes_2" {
-  name       = "nodepool-2"
-  cluster    = google_container_cluster.primary.name
-  location   = var.region
-  node_count = var.node_pool_2_count
-
-  # network_config {
-
-  #   additional_node_network_configs {
-  #     # network = google_compute_network.vpc.id
-  #     subnetwork = var.private_subnet_2
-  #   }
-
-  # }
-
-
-  node_config {
-    machine_type = var.machine_type
-    disk_size_gb = var.disk_size_gb
-    disk_type = var.disk_type
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
   }
 
   depends_on = [google_container_cluster.primary]

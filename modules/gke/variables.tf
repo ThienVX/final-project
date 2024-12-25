@@ -1,3 +1,16 @@
+variable "project_id" {
+  description = "GCP project ID"
+  type        = string
+  default = "amazing-math-407308"
+}
+
+variable "gke_namespace" {
+  description = "GCP project ID"
+  type        = string
+  default = "data-process"
+}
+
+
 variable "cluster_name" {
   description = "The name of the GKE cluster"
   type        = string
@@ -61,8 +74,8 @@ variable "disk_size_gb" {
 }
 variable "disk_type" {
   type = string
-  default = "pd-ssd"
+  default = "pd-standard"
 }
 variable "machine_type" {
-  default = "e2-small"
+  default = "n1-standard-2"
 }
